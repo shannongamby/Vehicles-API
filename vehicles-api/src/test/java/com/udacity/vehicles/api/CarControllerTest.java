@@ -111,6 +111,29 @@ public class CarControllerTest {
                 .andExpect(jsonPath("$.details.model").value("Impala"));
     }
 
+    @Test
+    public void updateCar() throws Exception {
+        Car car = getCar();
+        car.setId(1L);
+        long id = car.getId();
+
+        mvc.perform(get("/cars/" + id).header("Content-Type",MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.condition").value("NEW"));
+
+        car.setCondition(Condition.USED);
+
+        given(carService.save(any())).willReturn(car);
+        given(carService.findById(any())).willReturn(car);
+
+        mvc.perform(put("/cars/" + id).header("Content-Type",MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .content(json.write(car).getJson()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.condition").value("USED"));
+    }
+
     /**
      * Tests the deletion of a single car by ID.
      * @throws Exception if the delete operation of a vehicle fails
